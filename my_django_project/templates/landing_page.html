@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Welcome - AI Stock Advisor{% endblock %}
+
+{% block content %}
+<style>
+.hero { text-align: center; padding: 40px 20px; background-color: #e9ecef; margin-bottom: 30px; border-radius: 8px; }
+.hero h1 { font-size: 2.8em; margin-bottom: 20px; color: #343a40; }
+.hero p { font-size: 1.3em; margin-bottom: 30px; color: #495057; }
+.cta-button { background-color: #007bff; color: white; padding: 15px 30px; text-decoration: none; font-size: 1.2em; border-radius: 5px; transition: background-color 0.3s ease; }
+.cta-button:hover { background-color: #0056b3; }
+.hero-login-link { margin-top:20px; font-size: 1em; color: #6c757d;}
+.hero-login-link a { color: #0056b3; text-decoration: none; }
+.hero-login-link a:hover { text-decoration: underline; }
+
+.features { display: flex; justify-content: space-around; text-align: center; padding: 20px 0; }
+.feature { max-width: 30%; padding: 0 15px; }
+.feature h3 { font-size: 1.5em; color: #343a40; margin-bottom: 10px;}
+.feature p { font-size: 1em; color: #495057; line-height: 1.6;}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .features { flex-direction: column; align-items: center; }
+    .feature { max-width: 80%; margin-bottom: 30px; }
+    .hero h1 { font-size: 2em; }
+    .hero p { font-size: 1.1em; }
+    .cta-button { padding: 12px 25px; font-size: 1.1em; }
+}
+</style>
+
+<div class="hero">
+  <h1>Unlock AI-Powered Investment Insights</h1>
+  <p>Leverage cutting-edge AI analysts to make smarter investment decisions. Join our platform today!</p>
+  {% if not user.is_authenticated %}
+    <a href="{% url 'register' %}" class="cta-button">Get Started for Free</a>
+    <p class="hero-login-link">Already a member? <a href="{% url 'login' %}">Login</a></p>
+  {% else %}
+    <a href="{% url 'home' %}" class="cta-button">Go to Your Dashboard</a>
+  {% endif %}
+</div>
+
+<div class="features">
+  <div class="feature">
+    <h3>Intelligent Analysis</h3>
+    <p>Get stock analysis from multiple AI personas like Ben Graham and Warren Buffett, powered by advanced Large Language Models.</p>
+  </div>
+  <div class="feature">
+    <h3>Data-Driven Decisions</h3>
+    <p>Make informed choices based on comprehensive market data and AI-generated reasoning and insights.</p>
+  </div>
+  <div class="feature">
+    <h3>User-Friendly Interface</h3>
+    <p>Easy to use platform, designed for both novice and experienced investors to navigate and utilize effectively.</p>
+  </div>
+</div>
+{% endblock %}

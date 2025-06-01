@@ -1,0 +1,21 @@
+<!-- templates/home.html -->
+{% load auth_extras %} {# Load the custom template tags #}
+
+<h1>Welcome to the AI Hedge Fund Advisor</h1>
+{% if user.is_authenticated %}
+  <p>Hello, {{ user.username }}!</p>
+  <p>Use the navigation bar above to access features like Stock Analysis or your Profile.</p>
+
+  {# Conditional link to premium feature #}
+  {% if user|is_in_group:'PremiumUser' %}
+    <p><a href="{% url 'premium_feature' %}">Access Premium Feature</a></p>
+  {% elif user|is_in_group:'FreeUser' %}
+    <p>You are currently on the FreeUser plan. Consider upgrading for more features!</p>
+  {% else %}
+    {# Fallback for users not in FreeUser or PremiumUser, though ideally everyone is in a base group #}
+    <p>Explore our features and consider our premium options!</p>
+  {% endif %}
+
+{% else %}
+  <p>Please <a href="{% url 'login' %}">login</a> or <a href="{% url 'register' %}">register</a> to use our services.</p>
+{% endif %}

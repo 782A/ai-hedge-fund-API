@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %} <!-- Hypothetically, if we add static CSS/JS later -->
+
+{% block title %}Stock Analysis Request{% endblock %}
+
+{% block content %}
+<h2>Get Stock Analysis</h2>
+<form method="post">
+  {% csrf_token %}
+
+  <div class="form-group">
+    {{ form.tickers.label_tag }}
+    {{ form.tickers }}
+    {% if form.tickers.help_text %}
+      <small class="form-text text-muted">{{ form.tickers.help_text }}</small>
+    {% endif %}
+    {% for error in form.tickers.errors %}
+      <div class="alert alert-danger">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <div class="form-group">
+    <label>{{ form.selected_analysts.label }}</label>
+    <div class="checkbox-list">
+    {% for checkbox in form.selected_analysts %}
+      <div class="checkbox-item">
+        {{ checkbox.tag }}
+        <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
+      </div>
+    {% endfor %}
+    </div>
+    {% if form.selected_analysts.help_text %}
+      <small class="form-text text-muted">{{ form.selected_analysts.help_text }}</small>
+    {% endif %}
+    {% for error in form.selected_analysts.errors %}
+      <div class="alert alert-danger">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <div class="form-group">
+    {{ form.model_name.label_tag }}
+    {{ form.model_name }}
+    {% if form.model_name.help_text %}
+      <small class="form-text text-muted">{{ form.model_name.help_text }}</small>
+    {% endif %}
+    {% for error in form.model_name.errors %}
+      <div class="alert alert-danger">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <button type="submit">Analyze Stocks</button>
+</form>
+
+{% if raw_json_results %}
+  <h3>Analysis Results:</h3>
+  <pre id="json-results">{{ raw_json_results }}</pre>
+  <!--
+    A more structured display would parse 'analysis_results' if it's not None
+    and build HTML accordingly. For now, displaying raw JSON.
+    Example of how one might start to structure it:
+  -->
+  {% if analysis_results and not analysis_results.error %}
+    <h4>Decisions:</h4>
+    <ul>
+    {% for ticker, decision in analysis_results.decisions.items %}
+      <li>
+        <strong>{{ ticker }}:</strong> Action: {{ decision.action }}, Quantity: {{ decision.quantity }}
+        <p><em>Reasoning: {{ decision.reasoning }}</em></p>
+      </li>
+    {% endfor %}
+    </ul>
+
+    <h4>Analyst Signals:</h4>
+    {% for analyst, signals_by_analyst in analysis_results.analyst_signals.items %}
+      <h5>Signals from {{ analyst }}:</h5>
+      <ul>
+      {% for ticker, signal_data in signals_by_analyst.items %}
+        <li>
+          <strong>{{ ticker }}:</strong> Signal: {{ signal_data.signal }}, Confidence: {{ signal_data.confidence }}
+          <p><em>Reasoning: {{ signal_data.reasoning }}</em></p>
+        </li>
+      {% endfor %}
+      </ul>
+    {% endfor %}
+  {% elif analysis_results.error %}
+     <p style="color:red;">Error in analysis: {{ analysis_results.error }}</p>
+  {% endif %}
+{% endif %}
+
+<style>
+  .form-group { margin-bottom: 1rem; }
+  .checkbox-list .checkbox-item { display: block; margin-bottom: 0.5rem; }
+  .checkbox-list .checkbox-item input[type="checkbox"] { margin-right: 0.5rem; }
+  .alert-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; padding: .75rem 1.25rem; margin-top: .25rem; border: 1px solid transparent; border-radius: .25rem; }
+</style>
+
+{% endblock %}

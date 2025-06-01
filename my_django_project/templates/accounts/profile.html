@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}User Profile - {{ user.username }}{% endblock %}
+
+{% block content %}
+<h2>User Profile</h2>
+<p><strong>Username:</strong> {{ user.username }}</p>
+<p><strong>Email:</strong> {{ user.email }}</p>
+
+<hr>
+<h3>Edit Your Profile</h3>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Update Profile</button>
+</form>
+<hr>
+
+<h3>Referral Information</h3>
+{% if user.profile %}
+  <p>Your Unique Referral Code: <strong>{{ user.profile.referral_code }}</strong></p>
+  <p><em>Share this code with friends! When they register using your code, you might earn rewards (details coming soon!).</em></p>
+
+  {% if user.profile.referred_by %}
+    <p>You were referred by: <strong>{{ user.profile.referred_by.username }}</strong></p>
+  {% else %}
+    <p>You were not referred by anyone, or the referral code was not processed.</p>
+  {% endif %}
+
+  {% with referrals_made_count=user.referrals_made.count %}
+    {% if referrals_made_count > 0 %}
+      <p>You have successfully referred <strong>{{ referrals_made_count }}</strong> user(s).</p>
+      <ul>
+      {% for referral in user.referrals_made.all %}
+        <li>{{ referral.user.username }} (Joined: {{ referral.user.date_joined|date:"Y-m-d" }})</li>
+      {% endfor %}
+      </ul>
+    {% else %}
+      <p>You haven't referred anyone yet. Share your code!</p>
+    {% endif %}
+  {% endwith %}
+{% else %}
+  <p>Profile information is not yet available. This might be a temporary issue.</p>
+{% endif %}
+
+<br>
+<p><a href="{% url 'home' %}">Back to Home</a></p>
+{% endblock %}

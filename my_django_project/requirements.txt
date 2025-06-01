@@ -1,0 +1,4 @@
+django
+requests
+gunicorn
+psycopg2-binary

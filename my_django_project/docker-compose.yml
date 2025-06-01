@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  django_app:
+    build: .
+    container_name: django_ai_hedge_fund_webapp
+    # For development, mounting the current directory is useful.
+    # For production, you might prefer to rely solely on the COPY in Dockerfile.
+    volumes:
+      - .:/app/my_django_project
+      - static_volume:/app/my_django_project/staticfiles
+      - media_volume:/app/my_django_project/mediafiles
+    ports:
+      - "8000:8000"
+    # Environment variables can be set here or in a .env file
+    # For production, use a .env file and ensure it's in .gitignore
+    env_file:
+      - .env.prod  # Example: store production environment variables here
+    depends_on:
+      - db_postgres
+      - ai_hedge_fund_api # Assuming this service is defined and available
+
+  ai_hedge_fund_api:
+    # This is a placeholder for the actual AI API service.
+    # It might be a pre-built image or built from another Dockerfile.
+    image: your-ai-hedge-fund-api-image:latest
+    # build:
+    #   context: ./path_to_your_ai_api_service_dockerfile # if building from source
+    #   dockerfile: Dockerfile
+    container_name: ai_hedge_fund_api_service
+    ports:
+      - "6000:6000" # Assuming the API runs on port 6000 internally
+    # env_file:
+    #   - ./.env.api # Example for API specific env vars
+
+  db_postgres:
+    image: postgres:15-alpine
+    container_name: postgres_db_ai_hedge_fund
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      # These should ideally come from an .env file or secrets management
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "5433:5432" # Expose PostgreSQL on host port 5433 to avoid conflict if local PG runs on 5432
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx_reverse_proxy_ai_hedge_fund
+    ports:
+      - "80:80"
+      - "443:443" # If managing SSL/TLS here
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro # Mount custom Nginx config
+      # - ./certbot/conf:/etc/letsencrypt # For Let's Encrypt SSL certs (managed by Certbot)
+      # - ./certbot/www:/var/www/certbot # For Let's Encrypt ACME challenge
+      - static_volume:/app/my_django_project/staticfiles:ro # Nginx serves static files
+      - media_volume:/app/my_django_project/mediafiles:ro   # Nginx serves media files
+    depends_on:
+      - django_app
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
+
+# Example .env.prod content (DO NOT COMMIT THIS FILE if it contains secrets)
+# Create a file named .env.prod in the same directory as docker-compose.yml
+# DJANGO_SECRET_KEY=your_very_secret_production_key_here_blah_blah_blah
+# DJANGO_DEBUG=False
+# DJANGO_ALLOWED_HOSTS=.yourdomain.com,yourdomain.com,localhost,127.0.0.1
+# DB_ENGINE=django.db.backends.postgresql
+# DB_NAME=ai_hedge_fund_prod_db
+# DB_USER=ai_hedge_fund_user
+# DB_PASSWORD=a_very_strong_password_for_db
+# DB_HOST=db_postgres
+# DB_PORT=5432
+# DJANGO_SETTINGS_MODULE=webapp.settings
+# CMD_DJANGO_APP=gunicorn --workers 3 --bind 0.0.0.0:8000 webapp.wsgi:application
+
+# Note: The CMD for django_app can be overridden in the .env.prod file as well
+# and then used in the Dockerfile or docker-compose command section.
+# For example, in docker-compose:
+# command: sh -c "python manage.py migrate --noinput && python manage.py collectstatic --noinput --clear && gunicorn --workers 3 --bind 0.0.0.0:8000 webapp.wsgi:application"
+# Or use an entrypoint.sh script as shown in the Dockerfile.
